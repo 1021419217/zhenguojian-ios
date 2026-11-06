@@ -44,6 +44,7 @@ class SettingsTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.enabled = true,
+    this.autofocus = false,
     this.iconColor,
   });
   final String title;
@@ -53,6 +54,7 @@ class SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool enabled;
+  final bool autofocus;
 
   /// 圆形图标底色；不传时用主题色的低饱和版本。
   final Color? iconColor;
@@ -61,6 +63,7 @@ class SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return TileFocus(
+      autofocus: autofocus,
       builder: (focusNode) => ListTile(
         focusNode: focusNode,
         minTileHeight: subtitle == null ? 60 : 72,
