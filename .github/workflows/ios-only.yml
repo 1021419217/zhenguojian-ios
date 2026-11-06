@@ -64,6 +64,14 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get --enforce-lockfile
 
+      # 诊断：把 Dart 静态分析的全部问题直接打印出来（不阻断），
+      # 用于定位「flutter build ios」被 Flutter 吞掉的真实编译错误。
+      - name: 诊断 Dart 静态分析
+        shell: bash
+        run: |
+          flutter analyze --no-pub 2>&1 | tee /tmp/analyze.log || true
+          echo "=== ANALYZE_DIAG_DONE ==="
+
       # 番茄引擎静态库：失败不拦出包（FanqieEngine.podspec 会跳过链接，
       # 应用照常能装，只是番茄源提示引擎未就绪）。
       - name: Build Fanqie engine static lib (iOS)
