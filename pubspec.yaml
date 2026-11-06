@@ -1,0 +1,53 @@
+name: duanju_app
+description: 独立运行的多端短剧应用
+publish_to: none
+version: 1.2.6+111
+
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  video_player: ^2.9.2
+  ffi: ^2.2.0
+  media_kit: 1.2.6
+  media_kit_video: 2.0.1
+  media_kit_libs_video: ^1.0.7
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.5
+  flutter_foreground_task: 11.0.3
+  ffmpeg_kit_flutter_new_min_gpl: 2.6.7
+  file_picker: 13.1.0
+  crypto: ^3.0.7
+  window_manager: ^0.5.1
+  package_info_plus: ^10.2.1
+  dynamic_color: ^2.1.0
+  url_launcher: ^6.3.3
+  # 直播播放时保持屏幕常亮。该插件本来就在 media_kit_video 的依赖树里，
+  # 这里显式声明只是为了能直接引用，不会引入新的原生插件。
+  wakelock_plus: ^1.8.0
+  # 拼音首字母搜索（遥控器字母键盘只能给到 A-Z）。纯 Dart 实现，不涉及原生代码。
+  lpinyin: ^2.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  shared_preferences_platform_interface: ^2.4.2
+
+dependency_overrides:
+  media_kit_libs_windows_video:
+    path: packages/media_kit_libs_windows_video
+
+flutter:
+  config:
+    enable-swift-package-manager: false
+  uses-material-design: true
+  assets:
+    - assets/video_enhancement/
+    # 番茄内置源：引擎启动配置与分类过滤规则。
+    - assets/fanqie/

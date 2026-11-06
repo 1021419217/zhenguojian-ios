@@ -1,0 +1,55 @@
+.dart_tool/
+.flutter-plugins*
+.pub-cache/
+build/
+dist/
+coverage/
+
+native/build/
+# jniLibs 整体是构建产物目录，但番茄内容引擎的 Rust 产物没有源码可重建
+# （本机无 Rust 工具链，依赖的 fqapp/rust 也未随仓库提供），必须随仓库携带，
+# 否则换台机器打出的 APK 会缺 libfanqie_shim.so，番茄源直接不可用。
+android/app/src/main/jniLibs/*
+!android/app/src/main/jniLibs/arm64-v8a/
+android/app/src/main/jniLibs/arm64-v8a/*
+!android/app/src/main/jniLibs/arm64-v8a/libfanqie_shim.so
+
+# iOS 的番茄引擎静态库由 CI 现编（scripts/build_fanqie_engine.py），不入库。
+ios/FanqieEngine/libfanqie_shim.a
+native/fanqie_shim/target/
+windows/runner/duanju_core.dll
+windows/runner/duanju_core.h
+ios/DuanjuCore/*.xcframework/
+*.test
+*.out
+
+windows/flutter/generated_plugin_registrant.*
+windows/flutter/generated_plugins.cmake
+
+key.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+.idea/
+*.iml
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+/CLAUDE.md
+/legacy_ui/
+/legacy_test/

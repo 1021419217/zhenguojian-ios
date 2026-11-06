@@ -1,0 +1,98 @@
+name: Build iOS IPA (macos-latest)
+
+# 精简工作流：只跑 iOS 一个 job（runner 用 macos-latest，与稳定成功路径一致），跳过 checks / android / windows / web / macOS，
+# 最大限度节省 macOS runner（10 倍计费）额度。
+# 产物：dist/ios/zhenguojian-<版本>-ios-unsigned.ipa
+#
+# 用法：把本文件放到 fork 仓库的 .github/workflows/ios-only.yml，
+#      然后到 Actions -> "Build iOS IPA" -> Run workflow（分支选 master）。
+# 或用同目录 build_ipa.py --minimal 自动注入并触发。
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GOPROXY: https://proxy.golang.org,direct
+  GOSUMDB: sum.golang.org
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  ios:
+    name: Build unsigned iOS IPA (真果鉴 · 跟随上游)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: native/go.mod
+          cache-dependency-path: native/go.sum
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+
+      - name: Check Xcode / CocoaPods
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcode-select -p
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+          xcrun --sdk iphoneos --find clang
+          if ! command -v pod >/dev/null 2>&1; then
+            brew install cocoapods
+          fi
+          pod --version
+          go version
+          flutter --version
+          flutter precache --ios
+
+      - name: Flutter pub get
+        run: flutter pub get --enforce-lockfile
+
+      # 番茄引擎静态库：失败不拦出包（FanqieEngine.podspec 会跳过链接，
+      # 应用照常能装，只是番茄源提示引擎未就绪）。
+      - name: Build Fanqie engine static lib (iOS)
+        continue-on-error: true
+        run: |
+          rustup target add aarch64-apple-ios
+          python scripts/build_fanqie_engine.py --out ios/FanqieEngine --target aarch64-apple-ios
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: pods-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ios/Podfile', '.flutter-plugins-dependencies') }}
+          restore-keys: |
+            pods-${{ runner.os }}-${{ runner.arch }}-
+
+      # 关键一步：内部依次完成 Go 核心 xcframework -> pod install ->
+      # flutter build ios --release --no-codesign -> 打包未签名 IPA。
+      # --all-sources 即「真果鉴」（全站源版）。
+      - name: Build unsigned IPA (真果鉴)
+        run: python scripts/build_ios.py --all-sources
+
+      - name: 列出产物
+        run: ls -lh dist/ios/
+
+      - name: 上传 IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned
+          path: dist/ios/*
+          if-no-files-found: error
+          retention-days: 14
