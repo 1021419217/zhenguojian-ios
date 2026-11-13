@@ -1,12 +1,10 @@
-name: Build iOS IPA (macos-latest)
+name: Build iOS IPA
 
-# 精简工作流：只跑 iOS 一个 job（runner 用 macos-latest，与稳定成功路径一致），跳过 checks / android / windows / web / macOS，
-# 最大限度节省 macOS runner（10 倍计费）额度。
-# 产物：dist/ios/zhenguojian-<版本>-ios-unsigned.ipa
-#
-# 用法：把本文件放到 fork 仓库的 .github/workflows/ios-only.yml，
-#      然后到 Actions -> "Build iOS IPA" -> Run workflow（分支选 master）。
-# 或用同目录 build_ipa.py --minimal 自动注入并触发。
+# 精简工作流：只跑 iOS 一个 job，跳过 checks / android / windows / web / macOS。
+# 基线 = wokaotianshi123/guoappxp@master（1.6.0+123）。
+# 注意：外置站源仓库 guoapp-sources 为上游私有仓库（需 SOURCES_DEPLOY_KEY），
+# 本工作流不检出它，因此构建命令不带 --sources，产物为「core 内置源」版：
+# 红果 / 番茄 / 黄果 / 听书 / 自定义源可用，外置站源（A123、鬼片、爱看机器人等）不含。
 
 on:
   workflow_dispatch:
@@ -21,11 +19,15 @@ env:
 
 jobs:
   ios:
-    name: Build unsigned iOS IPA (真果鉴 · 跟随上游)
+    name: Build unsigned iOS IPA
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
+      # 直接检出上游公开仓库 master：无需同步源码，永远跟随上游最新版。
       - uses: actions/checkout@v4
+        with:
+          repository: wokaotianshi123/guoappxp
+          ref: master
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -64,14 +66,6 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get --enforce-lockfile
 
-      # 诊断：把 Dart 静态分析的全部问题直接打印出来（不阻断），
-      # 用于定位「flutter build ios」被 Flutter 吞掉的真实编译错误。
-      - name: 诊断 Dart 静态分析
-        shell: bash
-        run: |
-          flutter analyze --no-pub 2>&1 | tee /tmp/analyze.log || true
-          echo "=== ANALYZE_DIAG_DONE ==="
-
       # 番茄引擎静态库：失败不拦出包（FanqieEngine.podspec 会跳过链接，
       # 应用照常能装，只是番茄源提示引擎未就绪）。
       - name: Build Fanqie engine static lib (iOS)
@@ -88,10 +82,10 @@ jobs:
           restore-keys: |
             pods-${{ runner.os }}-${{ runner.arch }}-
 
-      # 关键一步：内部依次完成 Go 核心 xcframework -> pod install ->
+      # 关键一步：Go 核心 xcframework -> pod install ->
       # flutter build ios --release --no-codesign -> 打包未签名 IPA。
-      # --all-sources 即「真果鉴」（全站源版）。
-      - name: Build unsigned IPA (真果鉴)
+      # --all-sources = 真果鉴（core 内置全部站源），不带 --sources（私有外置源不可用）。
+      - name: Build unsigned IPA
         run: python scripts/build_ios.py --all-sources
 
       - name: 列出产物
