@@ -23,11 +23,11 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      # 检出上游 fdb4a098 = 1.4.5+121：站源外置前的最后一版，30 个站源都在 core 内。
+      # 检出上游 1.4.5+121（tag）：站源外置前的最后一版，30 个站源都在 core 内。
       - uses: actions/checkout@v4
         with:
           repository: wokaotianshi123/guoappxp
-          ref: fdb4a0980335
+          ref: app-v1.4.5-121
 
       - name: Setup Python
         uses: actions/setup-python@v5
