@@ -1,10 +1,10 @@
 name: Build iOS IPA
 
 # 精简工作流：只跑 iOS 一个 job，跳过 checks / android / windows / web / macOS。
-# 基线 = wokaotianshi123/guoappxp@master（1.6.0+123）。
-# 注意：外置站源仓库 guoapp-sources 为上游私有仓库（需 SOURCES_DEPLOY_KEY），
-# 本工作流不检出它，因此构建命令不带 --sources，产物为「core 内置源」版：
-# 红果 / 番茄 / 黄果 / 听书 / 自定义源可用，外置站源（A123、鬼片、爱看机器人等）不含。
+# 基线 = wokaotianshi123/guoappxp@fdb4a098（1.4.5+121，站源外置前的最后一个提交）。
+# 该版本 30 个站源全部编在 native/core 内，无需私有仓库 guoapp-sources，
+# 产物为完整「真果鉴全源版」：A123 / 鬼片 / 爱看机器人 / XChina / 黄豆 / 青空 /
+# 笔盒 / 各短剧源等全部可用。
 
 on:
   workflow_dispatch:
@@ -23,11 +23,11 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      # 直接检出上游公开仓库 master：无需同步源码，永远跟随上游最新版。
+      # 检出上游 fdb4a098 = 1.4.5+121：站源外置前的最后一版，30 个站源都在 core 内。
       - uses: actions/checkout@v4
         with:
           repository: wokaotianshi123/guoappxp
-          ref: master
+          ref: fdb4a0980335
 
       - name: Setup Python
         uses: actions/setup-python@v5
