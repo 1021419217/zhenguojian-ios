@@ -34,6 +34,20 @@ jobs:
         with:
           python-version: '3.11'
 
+      # 品牌补丁：换新图标 + 把「直播」入口挪到底部导航。
+      # 补丁脚本与图标资源放在本仓库 buildkit/，检出到独立目录后对上游源码就地打补丁。
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: .brand
+
+      - name: Apply brand patch (new icon + bottom Live tab)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .brand/buildkit/apply_patch.py "$GITHUB_WORKSPACE"
+          rm -rf .brand
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
